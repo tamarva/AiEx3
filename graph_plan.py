@@ -227,7 +227,30 @@ def independent_pair(a1, a2):
     a1.is_pos_effect(p) returns true is p is in a1.get_add()
     a1.is_neg_effect(p) returns true is p is in a1.get_delete()
     """
-    "*** YOUR CODE HERE ***"
+    a1_add_list = a1.get_add()
+
+    def check_inconsistent_effects():
+        for prop in a1_add_list:
+            if a2.is_neg_effect(prop):
+                return True
+        return False
+        # Todo check if need the opposite
+
+    def check_interfere():
+        if check_interfere_one_direc(a1, a2) or check_interfere_one_direc(a2, a1):
+            return True
+        return False
+
+    if (check_interfere() is False) and (check_inconsistent_effects() is False):
+        return True
+
+
+def check_interfere_one_direc(a1, a2):
+    a1_pre_cond = a1.get_pre()
+    for prop in a1_pre_cond:
+        if a2.is_neg_effect(prop):
+            return True
+    return False
 
 
 if __name__ == '__main__':
