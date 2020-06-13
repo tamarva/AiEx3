@@ -125,6 +125,7 @@ def max_level(state, planning_problem):
         pg_prev = pg_init
         pg_init = PlanGraphLevel()
         pg_init.expand_without_mutex(pg_prev)
+        state = pg_init.get_proposition_layer().get_propositions()
         graph.append(pg_init)
     return level
 
