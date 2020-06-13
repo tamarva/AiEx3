@@ -57,19 +57,17 @@ class PlanGraphLevel(object):
         if all the preconditions of action are in the previous propositions layer
         self.actionLayer.addAction(action) adds action to the current action layer
         """
-        all_actions = PlanGraphLevel.actions  #Todo check if this contains all actions
-
+        all_actions = PlanGraphLevel.actions
         for action in all_actions:
             if previous_proposition_layer.all_preconds_in_layer(action):
-                pre_conditions = action.get_pre()
-                pre_cond_pairs = []
-                for i in range(len(pre_conditions)):
-                    for j in range(len(pre_conditions)):
-                        if i != j:
-                            pre_cond_pairs.append((pre_conditions[i],pre_conditions[j]))
-                for pair in pre_cond_pairs:
-                    if not mutex_propositions(pair[0], pair[1], self.action_layer):
-                        self.get_action_layer().add_action(action)
+                pre = action.get_pre()
+                to_add = False
+                for prop1 in pre:
+                    for prop2 in pre:
+                        if prop1 != prop2 and previous_proposition_layer.is_mutex(prop1, prop2):
+                            to_add = True
+                if not to_add:
+                    self.action_layer.add_action(action)
 
     def update_mutex_actions(self, previous_layer_mutex_proposition):
         """
@@ -82,7 +80,10 @@ class PlanGraphLevel(object):
         Note that an action is *not* mutex with itself
         """
         current_layer_actions = self.action_layer.get_actions()
-        "*** YOUR CODE HERE ***"
+        for i in current_layer_actions:
+            for j in current_layer_actions:
+                if i != j and mutex_actions(i, j, previous_layer_mutex_proposition):
+                    self.action_layer.add_mutex_actions(i, j)
 
     def update_proposition_layer(self):
         """
@@ -96,10 +97,19 @@ class PlanGraphLevel(object):
         dict() creates a new dictionary that might help to keep track on the propositions that you've
                already added to the layer
         self.proposition_layer.add_proposition(prop) adds the proposition prop to the current layer
-
         """
         current_layer_actions = self.action_layer.get_actions()
-        "*** YOUR CODE HERE ***"
+        prop_dict = dict()
+        for act in current_layer_actions:
+            add_prop_list = act.get_add()
+            for prop in add_prop_list:
+                if prop not in prop_dict:
+                    prop_dict[prop] = [act]
+                else:
+                    prop_dict[prop].append(act)
+        for prop, act_list in prop_dict.items():
+            prop.set_producers(act_list)
+            self.proposition_layer.add_proposition(prop)
 
     def update_mutex_proposition(self):
         """
@@ -112,7 +122,10 @@ class PlanGraphLevel(object):
         """
         current_layer_propositions = self.proposition_layer.get_propositions()
         current_layer_mutex_actions = self.action_layer.get_mutex_actions()
-        "*** YOUR CODE HERE ***"
+        for i in current_layer_propositions:
+            for j in current_layer_propositions:
+                if i != j and mutex_propositions(i, j, current_layer_mutex_actions):
+                    self.proposition_layer.add_mutex_prop(i, j)
 
     def expand(self, previous_layer):
         """
@@ -125,8 +138,10 @@ class PlanGraphLevel(object):
         """
         previous_proposition_layer = previous_layer.get_proposition_layer()
         previous_layer_mutex_proposition = previous_proposition_layer.get_mutex_props()
-
-        "*** YOUR CODE HERE ***"
+        self.update_action_layer(previous_proposition_layer)
+        self.update_mutex_actions(previous_layer_mutex_proposition)
+        self.update_proposition_layer()
+        self.update_mutex_proposition()
 
     def expand_without_mutex(self, previous_layer):
         """
@@ -134,7 +149,9 @@ class PlanGraphLevel(object):
         You don't have to use this function
         """
         previous_layer_proposition = previous_layer.get_proposition_layer()
-        "*** YOUR CODE HERE ***"
+        self.update_action_layer(previous_layer_proposition)
+        self.update_proposition_layer()
+
 
 
 def mutex_actions(a1, a2, mutex_props):

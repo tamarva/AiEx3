@@ -230,10 +230,10 @@ def independent_pair(a1, a2):
     a1_add_list = a1.get_add()
 
     def check_inconsistent_effects():
-        for prop in a1_add_list:
-            if a2.is_neg_effect(prop):
-                return True
+        if check_inconsistent_effects_one_dir(a1, a2) or check_inconsistent_effects_one_dir(a2,a1):
+            return True
         return False
+
         # Todo check if need the opposite
 
     def check_interfere():
@@ -244,6 +244,12 @@ def independent_pair(a1, a2):
     if (check_interfere() is False) and (check_inconsistent_effects() is False):
         return True
 
+def check_inconsistent_effects_one_dir(a1,a2):
+    a1_add_list = a1.get_add()
+    for prop in a1_add_list:
+        if a2.is_neg_effect(prop):
+            return True
+    return False
 
 def check_interfere_one_direc(a1, a2):
     a1_pre_cond = a1.get_pre()
