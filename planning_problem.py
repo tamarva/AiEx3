@@ -122,9 +122,16 @@ def max_level(state, planning_problem):
         if is_fixed(graph, level):
             return float('inf')
         level += 1
-        pg_init.expand_without_mutex(pg_init)
+        pg_prev = pg_init
+        pg_init = PlanGraphLevel()
+        pg_init.expand_without_mutex(pg_prev)
         graph.append(pg_init)
     return level
+
+
+
+
+
 
 
 def level_sum(state, planning_problem):
