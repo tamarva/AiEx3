@@ -130,17 +130,44 @@ def max_level(state, planning_problem):
     return level
 
 
-
-
-
-
-
 def level_sum(state, planning_problem):
     """
     The heuristic value is the sum of sub-goals level they first appeared.
     If the goal is not reachable from the state your heuristic should return float('inf')
     """
-    "*** YOUR CODE HERE ***"
+
+    prop_layer_init = PropositionLayer()
+    for prop in state:
+        prop_layer_init.add_proposition(prop)
+    pg_init = PlanGraphLevel()
+    pg_init.set_proposition_layer(prop_layer_init)
+
+    sub_goals = planning_problem.goal
+    level = 0
+    graph = [pg_init]
+    my_dict = {}
+    my_sum = 0
+
+    for goal in sub_goals:
+        if goal in state and goal not in my_dict.keys():
+            my_dict[goal] = level
+            my_sum += level
+
+    while not planning_problem.is_goal_state(state):
+        if is_fixed(graph, level):
+            return float('inf')
+        level += 1
+        pg_prev = pg_init
+        pg_init = PlanGraphLevel()
+        pg_init.expand_without_mutex(pg_prev)
+        state = pg_init.get_proposition_layer().get_propositions()
+        graph.append(pg_init)
+        for goal in sub_goals:
+            if goal in state and goal not in my_dict.keys():
+                my_dict[goal] = level
+                my_sum += level
+
+    return my_sum
 
 
 def is_fixed(graph, level):
